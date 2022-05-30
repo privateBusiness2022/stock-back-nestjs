@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   Int                   @id @default(autoincrement())
+  name                 String?
+  phone                String
+  email                String                @unique
+  password             String
+  account              String?
+  role                 Role
+  avatar               String?
+  status               UserStatus            @default(ACTIVE)
+  requests             RequestToChange[]
+  periods              Period[]
+  users                Client[]              @relation(name: "references")
+  createdUsers         Client[]              @relation(name: "createdBy")
+  apiKeys              ApiKey[]
+  agentStock           AgentStock[]
+  RequestsToWithdrawal RequestToWithdrawal[]
+  clientsProfit        ClientProfit[]
+}
+
+model Project {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String?
+  status      UserStatus @default(ACTIVE)
+  date        DateTime   @default(now())
+  periods     Period[]
+}
+
+model RequestToChange {
+  id       Int      @id @default(autoincrement())
+  date     DateTime @default(now())
+  name     String?
+  phone    String?
+  account  String?
+  status   Status   @default(PENDING)
+  user     User?    @relation(fields: [userId], references: [id])
+  userId   Int?
+  client   Client?  @relation(fields: [clientId], references: [id])
+  clientId Int?
+}
+
+model Client {
+  id                   Int                   @id @default(autoincrement())
+  name                 String?
+  phone                String                @unique
+  account              String?
+  role                 Role                  @default(CLIENT)
+  periodId             Int?
+  requests             RequestToChange[]
+  status               UserStatus            @default(ACTIVE)
+  period               Period?               @relation(fields: [periodId], references: [id])
+  reference            User?                 @relation(name: "references", fields: [referenceId], references: [id])
+  referenceId          Int?
+  ceratedBy            User?                 @relation(name: "createdBy", fields: [ceratedById], references: [id])
+  ceratedById          Int?
+  stocks               ClintStocks[]
+  RequestsToWithdrawal RequestToWithdrawal[]
+  clientProfits        ClientProfit[]
+}
+
+model Period {
+  id            Int           @id @default(autoincrement())
+  name          String
+  ceratedBy     User?         @relation(fields: [ceratedById], references: [id])
+  ceratedById   Int?
+  stocks        Stock?
+  status        PeriodStatus  @default(STARTED)
+  clients       Client[]
+  clientsStocks ClintStocks[]
+  stages        Stage[]
+  agentStock    AgentStock[]
+  project       Project?      @relation(fields: [projectId], references: [id])
+  projectId     Int?
+}
+
+model Stage {
+  id            Int            @id @default(autoincrement())
+  start         DateTime
+  end           DateTime
+  dividendEnd   DateTime
+  profit        Float?         @default(0)
+  status        PeriodStatus   @default(PENDING)
+  period        Period?        @relation(fields: [periodId], references: [id])
+  periodId      Int?
+  clientsProfit ClientProfit[]
+}
+
+model Stock {
+  id           Int           @id @default(autoincrement())
+  number       Decimal
+  priceOfOne   Decimal
+  period       Period?       @relation(fields: [periodId], references: [id])
+  periodId     Int?          @unique
+  clintsStocks ClintStocks[]
+}
+
+model AgentStock {
+  id       Int     @id @default(autoincrement())
+  number   Decimal
+  period   Period? @relation(fields: [periodId], references: [id])
+  periodId Int?
+  agentId  Int?
+  agent    User?   @relation(fields: [agentId], references: [id])
+}
+
+model ClintStocks {
+  id       Int     @id @default(autoincrement())
+  number   Decimal
+  price    Decimal
+  client   Client? @relation(fields: [clientId], references: [id])
+  clientId Int?
+  stock    Stock?  @relation(fields: [stockId], references: [id])
+  stockId  Int?
+  period   Period? @relation(fields: [periodId], references: [id])
+  periodId Int?
+}
+
+model ClientProfit {
+  id           Int     @id @default(autoincrement())
+  profit       Decimal
+  stocksNumber Decimal
+  price        Decimal
+  clientId     Int?
+  stutus       Status  @default(PENDING)
+  client       Client? @relation(fields: [clientId], references: [id])
+  stageId      Int?
+  stage        Stage?  @relation(fields: [stageId], references: [id])
+  userId       Int?
+  user         User?   @relation(fields: [userId], references: [id])
+}
+
+model RequestToWithdrawal {
+  id           Int      @id @default(autoincrement())
+  date         DateTime @default(now())
+  withdrawDate DateTime
+  status       Status   @default(PENDING)
+  user         User?    @relation(fields: [userId], references: [id])
+  userId       Int?
+  client       Client?  @relation(fields: [clientId], references: [id])
+  clientId     Int?
+}
+
+model ApiKey {
+  createdAt            DateTime @default(now())
+  description          String?
+  id                   Int      @id @default(autoincrement())
+  ipRestrictions       Json?
+  apiKey               String   @unique
+  name                 String?
+  referrerRestrictions Json?
+  scopes               Json?
+  updatedAt            DateTime @updatedAt
+  userId               Int?
+  user                 User?    @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  SUDO
+  ADMIN
+  ACCOUNTER
+  AGENT
+  CLIENT
+}
+
+enum Status {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PeriodStatus {
+  STARTED
+  STOPPED
+  PENDING
+  DIVIDEND_STARTED
+  DIVIDEND_ENDED
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
