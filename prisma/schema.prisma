@@ -28,12 +28,22 @@ model User {
 }
 
 model Project {
-  id          Int        @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   name        String
   description String?
-  status      UserStatus @default(ACTIVE)
-  date        DateTime   @default(now())
-  periods     Period[]
+  status      UserStatus    @default(ACTIVE)
+  date        DateTime      @default(now())
+  ProjectFund ProjectFund[]
+}
+
+model ProjectFund {
+  id        Int      @id @default(autoincrement())
+  project   Project? @relation(fields: [projectId], references: [id])
+  projectId Int?
+  stocks    Int
+  date      DateTime @default(now())
+  period    Period?  @relation(fields: [periodId], references: [id])
+  periodId  Int?
 }
 
 model RequestToChange {
@@ -79,8 +89,7 @@ model Period {
   clientsStocks ClintStocks[]
   stages        Stage[]
   agentStock    AgentStock[]
-  project       Project?      @relation(fields: [projectId], references: [id])
-  projectId     Int?
+  projectsFund  ProjectFund[]
 }
 
 model Stage {
@@ -170,6 +179,7 @@ enum Role {
   ACCOUNTER
   AGENT
   CLIENT
+  OTHER
 }
 
 enum Status {

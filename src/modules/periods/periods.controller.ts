@@ -25,6 +25,19 @@ export class PeriodsController {
     return this.periodsService.findAll();
   }
 
+  @Get('/numbers')
+  async getNumbers(): Promise<Expose<{}>> {
+    return this.periodsService.numbers();
+  }
+
+  @Patch('stages/:stageId')
+  async updateStageProfit(
+    @Param('stageId', ParseIntPipe) id: number,
+    @Body() data: ProfitUpdateDto,
+  ): Promise<Expose<Stage>> {
+    return this.periodsService.updateStageProfit(id, data);
+  }
+
   @Get('/stages/:userId')
   async getStages(
     @Param('userId', ParseIntPipe) userId: number,
@@ -66,15 +79,7 @@ export class PeriodsController {
     return this.periodsService.getClients(id);
   }
 
-  @Post('stages/:stageId')
-  async updateStageProfit(
-    @Param('stageId', ParseIntPipe) id: number,
-    @Body() data: ProfitUpdateDto,
-  ): Promise<Expose<Stage>> {
-    return this.periodsService.updateStageProfit(id, data);
-  }
-
-  @Put('profit/:id')
+  @Put('/profit/:id')
   async updateProfit(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<Expose<ClientProfit>> {

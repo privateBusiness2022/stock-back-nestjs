@@ -254,20 +254,61 @@ export class PeriodsService {
           },
         });
         clientsProfit.push(clientProfit);
+      } else {
+        const clientProfit = await this.prisma.clientProfit.create({
+          data: {
+            profit: stage.profit,
+            stocksNumber: client.number,
+            price: client.price,
+            stage: { connect: { id: stage.id } },
+            client: { connect: { id: client.id } },
+            user: { connect: { id: user.id } },
+          },
+        });
+        clientsProfit.push(clientProfit);
       }
-
-      const clientProfit = await this.prisma.clientProfit.create({
-        data: {
-          profit: stage.profit,
-          stocksNumber: client.number,
-          price: client.price,
-          stage: { connect: { id: stage.id } },
-          client: { connect: { id: client.id } },
-          user: { connect: { id: user.id } },
-        },
-      });
-      clientsProfit.push(clientProfit);
     });
     return clientsProfit;
+  }
+
+  async numbers(): Promise<Expose<{}>> {
+    const clients = await this.prisma.client.findMany({});
+    const activeClients = await this.prisma.client.findMany({
+      where: { status: 'ACTIVE' },
+    });
+    const period = await this.prisma.period.findMany({});
+    const stage = await this.prisma.stage.findMany({});
+    const activeStage = await this.prisma.stage.findMany({
+      where: { status: 'DIVIDEND_STARTED' },
+    });
+    const stocks = await this.prisma.stock.findMany({});
+    const users = await this.prisma.user.findMany({});
+    const requestToWithdrawal = await this.prisma.requestToWithdrawal.findMany(
+      {},
+    );
+    const pendingRequestToWithdrawal =
+      await this.prisma.requestToWithdrawal.findMany({
+        where: { status: 'PENDING' },
+      });
+    const requestToChange = await this.prisma.requestToChange.findMany({});
+    const pendingRequestToChange = await this.prisma.requestToChange.findMany({
+      where: { status: 'PENDING' },
+    });
+
+    return {
+      clients: { active: activeClients.length, total: clients.length },
+      period: period,
+      stages: { active: activeStage.length, total: stage.length, data: stage },
+      stocks: stocks,
+      users: { active: users.length, total: users.length },
+      requestsToWithdrawal: {
+        pending: pendingRequestToWithdrawal.length,
+        total: requestToWithdrawal.length,
+      },
+      requestsToChange: {
+        pending: pendingRequestToChange.length,
+        total: requestToChange.length,
+      },
+    };
   }
 }
