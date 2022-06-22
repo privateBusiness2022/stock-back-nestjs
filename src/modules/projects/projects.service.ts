@@ -28,15 +28,32 @@ export class ProjectsService {
 
   async getAll(): Promise<Expose<Project>[]> {
     return this.prisma.project.findMany({
-      include: { periods: true },
+      include: {
+        projectFund: {
+          include: {
+            period: true,
+          },
+        },
+      },
     });
   }
 
   async add(data: ProjectsCreateDto): Promise<Expose<Project>> {
-    const { periodsIds, ...rest } = data;
+    const { periodsFund, ...rest } = data;
+
+    periodsFund.map((stock, index) => {
+      if (stock.stocks === undefined) {
+        periodsFund.splice(index, 1);
+      }
+    });
 
     return this.prisma.project.create({
-      data: { ...rest, periods: { connect: periodsIds } },
+      data: {
+        ...rest,
+        projectFund: {
+          create: periodsFund,
+        },
+      },
     });
   }
 

@@ -7,9 +7,10 @@ export class ProjectsCreateDto {
 
   @IsArray()
   @IsNotEmpty()
-  periodsIds: Ids[];
+  periodsFund: PeriodsFound[];
 }
 
-export class Ids {
-  id: number;
+export class PeriodsFound {
+  periodId: number;
+  stocks: number;
 }
