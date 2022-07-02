@@ -68,3 +68,19 @@ export class ProfitUpdateDto {
     },
   ];
 }
+
+export class CreateCommissionsDto {
+  @IsArray()
+  @IsNotEmpty()
+  commissions: [CommissionDto];
+}
+
+export class CommissionDto {
+  @IsNumber()
+  @IsNotEmpty()
+  id: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  amount: number;
+}

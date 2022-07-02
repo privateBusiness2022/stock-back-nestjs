@@ -12,6 +12,7 @@ import {
 import { ApiSecurity } from '@nestjs/swagger';
 import { Prisma, Project } from '@prisma/client';
 import { Expose } from 'src/providers/prisma/prisma.interface';
+import { Public } from '../auth/public.decorator';
 import { ProjectsCreateDto } from './projects.dto';
 import { ProjectsService } from './projects.service';
 
@@ -19,6 +20,7 @@ import { ProjectsService } from './projects.service';
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
+  @Public()
   @Get()
   async getAll(): Promise<Expose<Project>[]> {
     return this.projectsService.getAll();

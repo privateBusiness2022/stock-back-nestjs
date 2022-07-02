@@ -25,6 +25,8 @@ model User {
   agentStock           AgentStock[]
   RequestsToWithdrawal RequestToWithdrawal[]
   clientsProfit        ClientProfit[]
+  commissions          Commission[]
+
 }
 
 model Project {
@@ -78,6 +80,16 @@ model Client {
   clientProfits        ClientProfit[]
 }
 
+model Commission {
+  id       Int      @id @default(autoincrement())
+  date     DateTime @default(now())
+  amount   Int
+  user     User?    @relation(fields: [userId], references: [id])
+  userId   Int?
+  stage    Stage?  @relation(fields: [stageId], references: [id])
+  stageId  Int?
+}
+
 model Period {
   id            Int           @id @default(autoincrement())
   name          String
@@ -102,6 +114,7 @@ model Stage {
   period        Period?        @relation(fields: [periodId], references: [id])
   periodId      Int?
   clientsProfit ClientProfit[]
+  commissions   Commission[]
 }
 
 model Stock {

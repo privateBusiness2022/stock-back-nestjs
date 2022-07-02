@@ -31,7 +31,12 @@ export class ProjectsService {
       include: {
         projectFund: {
           include: {
-            period: true,
+            period: {
+              include: {
+                stocks: true,
+                clients: true,
+              }
+            },
           },
         },
       },

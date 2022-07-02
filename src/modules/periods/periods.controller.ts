@@ -10,9 +10,10 @@ import {
   Put,
 } from '@nestjs/common';
 import { ApiSecurity } from '@nestjs/swagger';
-import { Client, ClientProfit, Period, Prisma, Stage } from '@prisma/client';
+import { Client, ClientProfit, Commission, Period, Prisma, Stage, User } from '@prisma/client';
 import { Expose } from 'src/providers/prisma/prisma.interface';
-import { PeriodCreateDto, ProfitUpdateDto } from './periods.dto';
+import { Public } from '../auth/public.decorator';
+import { CreateCommissionsDto, PeriodCreateDto, ProfitUpdateDto } from './periods.dto';
 import { PeriodsService } from './periods.service';
 
 @ApiSecurity('JWT')
@@ -20,6 +21,7 @@ import { PeriodsService } from './periods.service';
 export class PeriodsController {
   constructor(private readonly periodsService: PeriodsService) {}
 
+  @Public()
   @Get()
   async getAll(): Promise<Expose<Period>[]> {
     return this.periodsService.findAll();
@@ -84,5 +86,20 @@ export class PeriodsController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<Expose<ClientProfit>> {
     return this.periodsService.doneDividing(id);
+  }
+
+  @Get('/:stageId/usersBeneficiary')
+  async getUsersBeneficiary(
+    @Param('stageId', ParseIntPipe) id: number,
+  ): Promise<Expose<User>[]> {
+    return this.periodsService.getUsersWithClientsThatReferredTo(id);
+  }
+
+  @Post('/:stageId/commissions')
+  async createCommissions(
+    @Param('stageId', ParseIntPipe) id: number,
+    @Body() data: CreateCommissionsDto,
+  ): Promise<Expose<Commission>[]> {
+    return this.periodsService.createCommissions(id, data);
   }
 }

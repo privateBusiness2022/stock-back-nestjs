@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import type {
   ClientProfit,
   ClintStocks,
+  Commission,
   Prisma,
   RequestToChange,
   Stage,
@@ -20,14 +21,17 @@ import {
 } from 'src/errors/errors.constants';
 import { Expose } from 'src/providers/prisma/prisma.interface';
 import { PrismaService } from 'src/providers/prisma/prisma.service';
-import { PeriodCreateDto, ProfitUpdateDto } from './periods.dto';
+import { CreateCommissionsDto, PeriodCreateDto, ProfitUpdateDto } from './periods.dto';
 @Injectable()
 export class PeriodsService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(): Promise<Expose<Period>[]> {
     return await this.prisma.period.findMany({
-      include: { stocks: true, ceratedBy: true, stages: true, clients: true },
+      include: {
+        stocks: true, ceratedBy: true, stages: {
+        include: { clientsProfit: true, commissions: true }
+      }, clients: true },
     });
   }
 
@@ -310,5 +314,54 @@ export class PeriodsService {
         total: requestToChange.length,
       },
     };
+  }
+
+  async getUsersWithClientsThatReferredTo(
+    periodId: number,
+  ): Promise<Expose<User>[]> {
+    const clients = await this.prisma.clintStocks.findMany({
+      where: { period: { id: periodId } },
+      include: {
+        client: {
+          include: {
+            reference: true,
+          },
+        }
+      },
+    });
+
+    const users = [];
+
+    clients.map( (client) => {
+        users.push(client.client.reference);
+    });
+
+    // remove duplicates from array
+    const uniqueUsers = users.filter(
+      (v, i, a) => a.findIndex((v2) => v2.id === v.id) === i,
+    );
+
+    return uniqueUsers;
+  }
+
+  async createCommissions(
+    stageId: number,
+    commission: CreateCommissionsDto,
+  ): Promise<Expose<Commission>[]> {
+    const { commissions } = commission;
+    
+    commissions.map(async (commission) => {
+      await this.prisma.commission.create({
+        data: {
+          user: { connect: { id: commission.id } },
+          amount: Number(commission.amount),
+          stage: { connect: { id: stageId } },
+        },
+      });
+    });
+      
+    return this.prisma.commission.findMany({
+      where: { stage: { id: stageId } },
+    });
   }
 }
