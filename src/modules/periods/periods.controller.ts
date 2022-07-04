@@ -102,4 +102,12 @@ export class PeriodsController {
   ): Promise<Expose<Commission>[]> {
     return this.periodsService.createCommissions(id, data);
   }
+
+  @Public()
+  @Get('/:stageId/commissions')
+  async getCommissions(
+    @Param('stageId', ParseIntPipe) id: number,
+  ): Promise<Expose<Commission>[]> {
+    return this.periodsService.getCommissions(id);
+  }
 }

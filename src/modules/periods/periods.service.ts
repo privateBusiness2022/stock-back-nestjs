@@ -364,4 +364,11 @@ export class PeriodsService {
       where: { stage: { id: stageId } },
     });
   }
+
+  async getCommissions(stageId: number): Promise<Expose<Commission>[]> {
+    return this.prisma.commission.findMany({
+      where: { stage: { id: stageId } },
+      include: { user: true, stage: true },
+    });
+  }
 }
