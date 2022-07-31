@@ -35,7 +35,7 @@ export class ProjectsService {
               include: {
                 stocks: true,
                 clients: true,
-              }
+              },
             },
           },
         },
@@ -47,7 +47,7 @@ export class ProjectsService {
     const { periodsFund, ...rest } = data;
 
     periodsFund.map((stock, index) => {
-      if (stock.stocks === undefined) {
+      if (stock.fund === undefined) {
         periodsFund.splice(index, 1);
       }
     });

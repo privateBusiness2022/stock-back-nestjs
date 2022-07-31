@@ -60,6 +60,8 @@ export const MERGE_USER_CONFLICT = '409005: Cannot merge the same user';
 
 export const RATE_LIMIT_EXCEEDED = '429000: Rate limit exceeded';
 
-export const INIT_SCOP_NOT_FOUND = 'Init Scop Not Found'
+export const INIT_SCOP_NOT_FOUND = 'Init Scop Not Found';
 
-export const OPTION_NOT_FOUND = 'Option Not Found'
+export const OPTION_NOT_FOUND = 'Option Not Found';
+
+export const PERIOD_ALREADY_STARTED =  'Period Already Started';

@@ -21,7 +21,11 @@ import {
 } from 'src/errors/errors.constants';
 import { Expose } from 'src/providers/prisma/prisma.interface';
 import { PrismaService } from 'src/providers/prisma/prisma.service';
-import { CreateCommissionsDto, PeriodCreateDto, ProfitUpdateDto } from './periods.dto';
+import {
+  CreateCommissionsDto,
+  PeriodCreateDto,
+  ProfitUpdateDto,
+} from './periods.dto';
 @Injectable()
 export class PeriodsService {
   constructor(private prisma: PrismaService) {}
@@ -29,9 +33,13 @@ export class PeriodsService {
   async findAll(): Promise<Expose<Period>[]> {
     return await this.prisma.period.findMany({
       include: {
-        stocks: true, ceratedBy: true, stages: {
-        include: { clientsProfit: true, commissions: true }
-      }, clients: true },
+        stocks: true,
+        ceratedBy: true,
+        stages: {
+          include: { clientsProfit: true, commissions: true },
+        },
+        clients: true,
+      },
     });
   }
 
@@ -50,7 +58,7 @@ export class PeriodsService {
   }
 
   async create(data: PeriodCreateDto): Promise<Expose<Period>> {
-    let { stocks, stocksPrice, start, name, createdBy, agentStocks } = data;
+    const { stocks, stocksPrice, start, name, createdBy, agentStocks } = data;
 
     const createStocks = await this.prisma.stock.create({
       data: { number: stocks, priceOfOne: stocksPrice },
@@ -145,7 +153,7 @@ export class PeriodsService {
     stageId: number,
     data: ProfitUpdateDto,
   ): Promise<Stage> {
-    const { profit, usersIds } = data;
+    const { profit, usersIds, commission } = data;
     const stage = await this.prisma.stage.findUnique({
       where: { id: stageId },
       include: { period: true },
@@ -164,6 +172,7 @@ export class PeriodsService {
     }
 
     await this.dividingClientsToUsers(stageId, users);
+    const createCommission = await this.createCommissions(stageId, commission);
 
     return this.prisma.stage.update({
       where: { id: stageId },
@@ -326,14 +335,14 @@ export class PeriodsService {
           include: {
             reference: true,
           },
-        }
+        },
       },
     });
 
     const users = [];
 
-    clients.map( (client) => {
-        users.push(client.client.reference);
+    clients.map((client) => {
+      users.push(client.client.reference);
     });
 
     // remove duplicates from array
@@ -346,29 +355,26 @@ export class PeriodsService {
 
   async createCommissions(
     stageId: number,
-    commission: CreateCommissionsDto,
+    amount: number,
   ): Promise<Expose<Commission>[]> {
-    const { commissions } = commission;
-    
-    commissions.map(async (commission) => {
+    const stage = await this.prisma.stage.findUnique({
+      where: { id: stageId },
+      include: { period: true },
+    });
+
+    const users = await this.getUsersWithClientsThatReferredTo(stage.periodId);
+
+    users.map(async (user) => {
       await this.prisma.commission.create({
         data: {
-          user: { connect: { id: commission.id } },
-          amount: Number(commission.amount),
+          user: { connect: { id: user.id } },
+          amount: Number(amount),
           stage: { connect: { id: stageId } },
         },
       });
     });
-      
     return this.prisma.commission.findMany({
       where: { stage: { id: stageId } },
-    });
-  }
-
-  async getCommissions(stageId: number): Promise<Expose<Commission>[]> {
-    return this.prisma.commission.findMany({
-      where: { stage: { id: stageId } },
-      include: { user: true, stage: true },
     });
   }
 }

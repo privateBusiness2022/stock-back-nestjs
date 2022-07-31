@@ -12,5 +12,5 @@ export class ProjectsCreateDto {
 
 export class PeriodsFound {
   periodId: number;
-  stocks: number;
+  fund: number;
 }

@@ -1,18 +1,9 @@
 import {
   IsArray,
-  IsBoolean,
   IsDate,
-  IsEmail,
-  IsEnum,
-  IsIn,
-  IsLocale,
   IsNotEmpty,
   IsNumber,
-  IsOptional,
   IsString,
-  IsUrl,
-  Length,
-  MinLength,
 } from 'class-validator';
 
 export class PeriodCreateDto {
@@ -60,6 +51,10 @@ export class ProfitUpdateDto {
   @IsNotEmpty()
   profit: number;
 
+  @IsNumber()
+  @IsNotEmpty()
+  commission: number;
+
   @IsArray()
   @IsNotEmpty()
   usersIds: [
@@ -70,16 +65,6 @@ export class ProfitUpdateDto {
 }
 
 export class CreateCommissionsDto {
-  @IsArray()
-  @IsNotEmpty()
-  commissions: [CommissionDto];
-}
-
-export class CommissionDto {
-  @IsNumber()
-  @IsNotEmpty()
-  id: number;
-
   @IsNumber()
   @IsNotEmpty()
   amount: number;

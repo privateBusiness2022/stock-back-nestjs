@@ -42,7 +42,7 @@ model ProjectFund {
   id        Int      @id @default(autoincrement())
   project   Project? @relation(fields: [projectId], references: [id])
   projectId Int?
-  stocks    Int
+  fund      Int
   date      DateTime @default(now())
   period    Period?  @relation(fields: [periodId], references: [id])
   periodId  Int?

@@ -15,6 +15,7 @@ import randomColor from 'randomcolor';
 import {
   EMAIL_USER_CONFLICT,
   OPTION_NOT_FOUND,
+  PERIOD_ALREADY_STARTED,
   USER_NOT_FOUND,
 } from 'src/errors/errors.constants';
 import { Expose } from 'src/providers/prisma/prisma.interface';
@@ -70,7 +71,6 @@ export class ClientsService {
     token: string,
   ): Promise<Expose<Client>> {
     const { reference, period, stocksPrice, createdBy, ...rest } = client;
-    console.log(client);
     const payload = (await this.tokensService.verify(
       LOGIN_ACCESS_TOKEN,
       token.split(' ')[1],
@@ -82,6 +82,12 @@ export class ClientsService {
     });
     if (existingClient) {
       throw new ConflictException(EMAIL_USER_CONFLICT);
+    }
+
+    const tessPeriod = await this.periodService.findOne(period);
+
+    if (tessPeriod.status !== 'PENDING') {
+      throw new NotFoundException(PERIOD_ALREADY_STARTED);
     }
 
     const clintStocks = await this.getStocksForClient(stocksPrice, period);
@@ -355,9 +361,7 @@ export class ClientsService {
       stocksPrice / Number(period.stocks.priceOfOne)
     ).toFixed(1);
 
-    if (new Number(period.stocks.number) < new Number(stocksNumber)) {
-      throw new ConflictException('Not enough stocks');
-    }
+    if (new Number(period.stocks.number) < new Number(stocksNumber)) throw new ConflictException('Not enough stocks');
 
     const stocks = await this.prisma.stock.update({
       where: { id: period.stocks.id },
