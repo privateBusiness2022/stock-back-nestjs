@@ -3,7 +3,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import type {
   Prisma,
   RequestToChange,
@@ -11,7 +10,6 @@ import type {
 } from '@prisma/client';
 import { Client } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime';
-import randomColor from 'randomcolor';
 import {
   EMAIL_USER_CONFLICT,
   OPTION_NOT_FOUND,
@@ -361,7 +359,8 @@ export class ClientsService {
       stocksPrice / Number(period.stocks.priceOfOne)
     ).toFixed(1);
 
-    if (new Number(period.stocks.number) < new Number(stocksNumber)) throw new ConflictException('Not enough stocks');
+    if (new Number(period.stocks.number) < new Number(stocksNumber))
+      throw new ConflictException('Not enough stocks');
 
     const stocks = await this.prisma.stock.update({
       where: { id: period.stocks.id },
