@@ -13,7 +13,6 @@ import { ApiSecurity } from '@nestjs/swagger';
 import {
   Client,
   ClientProfit,
-  Commission,
   Period,
   Prisma,
   Stage,
@@ -21,11 +20,7 @@ import {
 } from '@prisma/client';
 import { Expose } from 'src/providers/prisma/prisma.interface';
 import { Public } from '../auth/public.decorator';
-import {
-  CreateCommissionsDto,
-  PeriodCreateDto,
-  ProfitUpdateDto,
-} from './periods.dto';
+import { PeriodCreateDto, ProfitUpdateDto } from './periods.dto';
 import { PeriodsService } from './periods.service';
 
 @ApiSecurity('JWT')
@@ -40,6 +35,7 @@ export class PeriodsController {
   }
 
   @Get('/numbers')
+  // eslint-disable-next-line @typescript-eslint/ban-types
   async getNumbers(): Promise<Expose<{}>> {
     return this.periodsService.numbers();
   }

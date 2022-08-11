@@ -3,29 +3,18 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import type {
   ClientProfit,
   ClintStocks,
   Commission,
   Prisma,
-  RequestToChange,
   Stage,
   User,
 } from '@prisma/client';
-import { Period, Client, Stock } from '@prisma/client';
-import randomColor from 'randomcolor';
-import {
-  EMAIL_USER_CONFLICT,
-  USER_NOT_FOUND,
-} from 'src/errors/errors.constants';
+import { Client, Period } from '@prisma/client';
 import { Expose } from 'src/providers/prisma/prisma.interface';
 import { PrismaService } from 'src/providers/prisma/prisma.service';
-import {
-  CreateCommissionsDto,
-  PeriodCreateDto,
-  ProfitUpdateDto,
-} from './periods.dto';
+import { PeriodCreateDto, ProfitUpdateDto } from './periods.dto';
 @Injectable()
 export class PeriodsService {
   constructor(private prisma: PrismaService) {}
@@ -35,10 +24,19 @@ export class PeriodsService {
       include: {
         stocks: true,
         ceratedBy: true,
+        projectsFund: {
+          include: {
+            project: true,
+          },
+        },
         stages: {
           include: { clientsProfit: true, commissions: true },
         },
-        clients: true,
+        clients: {
+          include: {
+            stocks: true,
+          },
+        },
       },
     });
   }
@@ -284,6 +282,7 @@ export class PeriodsService {
     return clientsProfit;
   }
 
+  // eslint-disable-next-line @typescript-eslint/ban-types
   async numbers(): Promise<Expose<{}>> {
     const clients = await this.prisma.client.findMany({});
     const activeClients = await this.prisma.client.findMany({
