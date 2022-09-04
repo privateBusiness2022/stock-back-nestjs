@@ -165,6 +165,7 @@ model RequestToWithdrawal {
   id           Int      @id @default(autoincrement())
   date         DateTime @default(now())
   withdrawDate DateTime
+  price        Decimal?
   status       Status   @default(PENDING)
   user         User?    @relation(fields: [userId], references: [id])
   userId       Int?

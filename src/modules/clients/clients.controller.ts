@@ -9,8 +9,6 @@ import {
   Patch,
   Post,
   Put,
-  Query,
-  Req,
 } from '@nestjs/common';
 import { ApiSecurity } from '@nestjs/swagger';
 import {
@@ -109,8 +107,9 @@ export class ClientsController {
   async getStocksWithdrawal(
     @Param('clientId', ParseIntPipe) clientId: number,
     @Headers('Authorization') token: string,
+    @Body() data: Prisma.RequestToWithdrawalCreateInput,
   ): Promise<Expose<RequestToWithdrawal>> {
-    return this.clientsService.stocksWithdrawal(token, clientId);
+    return this.clientsService.stocksWithdrawal(token, clientId, data);
   }
 
   @Get('stocks-withdrawal/approve/:id')

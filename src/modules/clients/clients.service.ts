@@ -229,6 +229,7 @@ export class ClientsService {
   async stocksWithdrawal(
     token: string,
     clintId: number,
+    data: Prisma.RequestToWithdrawalCreateInput,
   ): Promise<Expose<RequestToWithdrawal>> {
     const payload = (await this.tokensService.verify(
       LOGIN_ACCESS_TOKEN,
@@ -241,6 +242,7 @@ export class ClientsService {
         date,
         withdrawDate: await this.periodService.after30Days(date),
         client: { connect: { id: clintId } },
+        price: new Decimal(data.price),
         user: { connect: { id: id } },
       },
     });
@@ -251,7 +253,11 @@ export class ClientsService {
       include: {
         client: {
           include: {
-            stocks: true,
+            stocks: {
+              include: {
+                stock: true,
+              },
+            },
             period: true,
           },
         },
@@ -285,11 +291,38 @@ export class ClientsService {
                 stock: true,
               },
             },
-            period: true,
+            period: {
+              include: {
+                stocks: true,
+              },
+            },
           },
         },
       },
     });
+
+    if (Number(request.price) < Number(request.client.stocks[0].price)) {
+      const returnedStock =
+        Number(request.price) / Number(request.client.period.stocks.priceOfOne);
+
+      await this.prisma.clintStocks.update({
+        where: { id: request.client.stocks[0].id },
+        data: {
+          number:
+            Number(request.client.stocks[0].number) - Number(returnedStock),
+          price: Number(request.client.stocks[0].price) - Number(request.price),
+        },
+      });
+
+      await this.prisma.stock.update({
+        where: { id: request.client.stocks[0].stockId },
+        data: {
+          number: returnedStock + Number(request.client.stocks[0].stock.number),
+        },
+      });
+
+      return request;
+    }
 
     await this.prisma.client.update({
       where: { id: request.client.id },
